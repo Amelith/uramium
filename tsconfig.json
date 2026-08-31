@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "noEmit": true,
+    //"moduleDetection": "force",
+    "allowJs": true,
+
+    //"moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // Types
+    "rootDir": "./src",
+    "paths": {
+      "@utils/*": ["./src/utils/*"]
+    },
+    "types": ["bun"],
+  },
+  "include": ["src", "eslint.config.js"],
+  "exclude": [".git", ".zed", "node_modules", "scripts"],
+}

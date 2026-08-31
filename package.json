@@ -1,0 +1,20 @@
+{
+  "name": "uramium",
+  "version": "0.1.0",
+  "private": true,
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/bun": "^1.4.0",
+    "eslint": "^10.9.1",
+    "oxlint": "^1.80.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2"
+  }
+}
