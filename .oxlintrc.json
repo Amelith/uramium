@@ -1,9 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "typescript",
-    "import"
-  ],
+  "plugins": ["typescript", "import"],
   "categories": {
     "correctness": "off"
   },
@@ -20,7 +17,10 @@
     "func-names": ["warn", "as-needed"],
     "getter-return": "error",
     "import/extensions": ["error"],
-    "import/consistent-type-specifier-style": ["error", "prefer-top-level-if-only-type-imports"],
+    "import/consistent-type-specifier-style": [
+      "error",
+      "prefer-top-level-if-only-type-imports"
+    ],
     "no-async-promise-executor": "error",
     "no-await-in-loop": "error",
     "no-case-declarations": "error",
@@ -89,7 +89,16 @@
     "no-with": "error",
     "preserve-caught-error": "error",
     "require-yield": "error",
-    "sort-imports": "error",
+
+    // sort imports: by name, but single / default imports (import ... from ...)
+    // before multiple / named imports (import { ... } from ...)
+    "sort-imports": [
+      "error",
+      {
+        "memberSyntaxSortOrder": ["none", "all", "single", "multiple"]
+      }
+    ],
+
     "use-isnan": "error",
     "valid-typeof": "error",
     "no-array-constructor": "error",
@@ -99,9 +108,7 @@
     "no-warning-comments": [
       "warn",
       {
-        "terms": [
-          "@temp"
-        ],
+        "terms": ["@temp"],
         "location": "anywhere"
       }
     ],
@@ -198,14 +205,11 @@
     ],
     // require functions returning promises to be marked async (simplifies error handling)
     "typescript/promise-function-async": "warn",
-    "unicorn/prefer-array-find": "error",
+    "unicorn/prefer-array-find": "error"
   },
   "overrides": [
     {
-      "files": [
-        "**/*.ts",
-        "**/*.mts",
-      ],
+      "files": ["**/*.ts", "**/*.mts"],
       "rules": {
         "constructor-super": "off",
         "getter-return": "off",

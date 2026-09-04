@@ -33,6 +33,6 @@
     },
     "types": ["bun"],
   },
-  "include": ["src", "eslint.config.js"],
+  "include": ["src"],
   "exclude": [".git", ".zed", "node_modules", "scripts"],
 }

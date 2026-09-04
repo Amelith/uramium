@@ -1,5 +1,5 @@
-import type { Module, Argument } from "../types.ts";
+import type { Arguments, Module } from '../types.ts';
 
-export function defineModule<T extends Record<string, Argument<never>> | undefined>(config: Module<T>) {
+export function defineModule<T extends Arguments>(config: Module<T>): Module<T> {
   return config;
 }
