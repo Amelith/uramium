@@ -6,11 +6,11 @@ export interface NormalizedArgs {
 export type ArgumentType = string | number | boolean;
 
 export type ArgumentConfig<T extends ArgumentType, Nullable> = {
-  positional?: boolean;
+  positional?: boolean; // default false
   shortForm?: string;
   description: string;
   // if nullable and not required, the default property can be set to null
-  nullable?: Nullable;
+  nullable?: Nullable; // default true
   // save type as string for parsing but also as a generic for typed 'default' property
   type: T extends string
   ? 'string'
@@ -21,14 +21,14 @@ export type ArgumentConfig<T extends ArgumentType, Nullable> = {
   : never;
 } & (
     | {
-      required: true;
+      required: true; // default false
       default?: never;
     }
     | (
       Nullable extends true
       ? {
-        required?: false;
-        default?: T | null;
+        required?: false; // default false
+        default?: T | null; // default null
       }
       : {
         required?: false;
