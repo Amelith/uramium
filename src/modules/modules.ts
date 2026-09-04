@@ -1,78 +1,35 @@
-import { type Module } from '../types.ts';
-/*import * as path from 'node:path'
+import compareHash from './compareHash/main.ts'
+import createLinuxWebsiteShortcut from './createLinuxWebsiteShortcut/main.ts';
 
-const MODULE_BASE_PATH = import.meta.dirname;*/
-
-/**
- * List of all available modules along with their file path relative to src/modules/.
- * Sorted by name to use bsearch for finding a module by name.
- */
-const modules: { name: string, path: string }[] = [
-  { name: "createLinuxBrowserShortcut", path: "createLinuxBrowserShortcut" }
-] as const;
+export type ModuleKey = keyof typeof modules;
+export type ModuleForKey<K extends ModuleKey> = typeof modules[K];
 
 /**
- * Finds the path of the given module.
- * @param name Module to search for
- * @returns Path of the module, or null if the module wasn't found
+ * List of all available modules.
  */
-function getPathOfModule(name: string): string | null {
-  // use bsearch to find module
-  let low = 0;
-  let high = modules.length;
+const modules = {
+  'createLinuxWebsiteShortcut': createLinuxWebsiteShortcut,
+  'compareHash': compareHash,
+} as const;
 
-  while (low <= high) {
-    const mid = (low + high) / 2;
-    const current = modules[mid];
-    if (!current) return null; // if no modules present at all
-
-    if (name > current.name) low = mid + 1;
-    else if (name < current.name) high = mid - 1;
-    else return current.path;
-  }
-
-  return null;
+export function listModules(): ModuleKey[] {
+  return Object.keys(modules) as ModuleKey[];
 }
 
-async function fetchAllModules(): Promise<Module[]> {
-  const results = await Promise.allSettled(
-    modules.map(async m => getModuleByPath(m.path))
-  );
-
-  // Filter non-rejected, non-null results
-  return results
-    .filter(r => r.status === 'fulfilled' && r.value !== null)
-    .map(r => (r as PromiseFulfilledResult<Module>).value);
-}
-
-export function listModules(): string[] {
-  return modules.map(m => m.name);
-}
-
-export async function listModulesWithDescription() : Promise<{ name: string, description: string }[]> {
-  const modules = await fetchAllModules();
-  // Only include name and description in the returned array
-  return modules.map(r => ({ name: r.name, description: r.description }));
+export function listModulesWithDescription() : { key: ModuleKey, fullName: string, description: string }[] {
+  return Object.entries(modules)
+    .map(([key, module]) => ({
+      key: key as ModuleKey,
+      fullName: module.fullName,
+      description: module.description
+    }));
 }
 
 /**
  * Finds the given module based on its name. Returns null if the module was not found.
- * @param name The name of the module to find
- * @returns Full module,
+ * @param key The name of the module to find
+ * @returns Full module, or null if not present
  */
-async function getModuleByName(name: string) : Promise<Module | null> {
-  const modulePath = getPathOfModule(name);
-  if (!modulePath) return null;
-
-  return await getModuleByPath(modulePath);
-}
-
-async function getModuleByPath(modulePath: string) : Promise<Module | null> {
-  //const fullPath = path.join(MODULE_BASE_PATH, modulePath);
-  try {
-    const { default: module } = (await import(`./${modulePath}`)) as { default: Module };
-    return module;
-  } catch (_) {
-    return null;
-  }
+export function getModuleByName<K extends ModuleKey>(key: K) : ModuleForKey<K> | null {
+  return modules[key] ?? null;
 }
