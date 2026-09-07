@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [],
+
+  "jsdoc": true,
+
+  "experimentalOperatorPosition": "start",
+  "printWidth": 120,
+  "quoteProps": "preserve",
+  "singleQuote": true,
+  "sortImports": {
+    "newlinesBetween": false
+  }
+}

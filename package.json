@@ -2,15 +2,17 @@
   "name": "uramium",
   "version": "0.1.0",
   "private": true,
-  "module": "index.ts",
   "type": "module",
+  "module": "index.ts",
   "scripts": {
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@types/bun": "^1.4.0",
+    "@types/bun": "^1.4.1",
+    "oxfmt": "^0.66.0",
     "oxlint": "^1.81.0",
     "oxlint-tsgolint": "^7.0.2001"
   }

@@ -17,10 +17,7 @@
     "func-names": ["warn", "as-needed"],
     "getter-return": "error",
     "import/extensions": ["error"],
-    "import/consistent-type-specifier-style": [
-      "error",
-      "prefer-top-level-if-only-type-imports"
-    ],
+    "import/consistent-type-specifier-style": ["error", "prefer-top-level-if-only-type-imports"],
     "no-async-promise-executor": "error",
     "no-await-in-loop": "error",
     "no-case-declarations": "error",
@@ -92,12 +89,12 @@
 
     // sort imports: by name, but single / default imports (import ... from ...)
     // before multiple / named imports (import { ... } from ...)
-    "sort-imports": [
-      "error",
+    /*"sort-imports": [
+      "warn",
       {
         "memberSyntaxSortOrder": ["none", "all", "single", "multiple"]
       }
-    ],
+    ],*/
 
     "use-isnan": "error",
     "valid-typeof": "error",

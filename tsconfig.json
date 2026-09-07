@@ -31,8 +31,8 @@
     "paths": {
       "@utils/*": ["./src/utils/*"]
     },
-    "types": ["bun"],
+    "types": ["bun"]
   },
   "include": ["src"],
-  "exclude": [".git", ".zed", "node_modules", "scripts"],
+  "exclude": [".git", ".zed", "node_modules", "scripts"]
 }
