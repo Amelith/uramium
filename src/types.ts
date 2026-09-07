@@ -1,49 +1,48 @@
 export interface NormalizedArgs {
-  named: { key: string, value: string }[];
+  named: { key: string; value: string }[];
   positionals: string[];
 }
 
 export type ArgumentType = string | number | boolean;
+export type Arguments = Record<string, ArgumentConfig<ArgumentType, boolean>>;
+interface TypeMap {
+  string: string;
+  integer: number;
+  float: number;
+  boolean: boolean;
+}
 
-export type ArgumentConfig<T extends ArgumentType, Nullable> = {
-  positional?: boolean; // default false
-  shortForm?: string;
+export type ArgumentConfig<T extends ArgumentType, Nullable extends boolean> = {
   description: string;
-  // if nullable and not required, the default property can be set to null
-  nullable?: Nullable; // default true
   // save type as string for parsing but also as a generic for typed 'default' property
-  type: T extends string
-  ? 'string'
-  : T extends number
-  ? 'integer' | 'float'
-  : T extends boolean
-  ? 'boolean'
-  : never;
+  type: T extends string ? 'string' : T extends number ? 'integer' | 'float' : T extends boolean ? 'boolean' : never;
+  // if nullable and not required, the default property can be set to null
+  nullable?: Nullable | undefined; // default true
+  positional?: boolean | undefined; // default false
+  shortForm?: string | undefined;
 } & (
-    | {
+  | {
       required: true; // default false
-      default?: never;
+      defaultValue?: never | undefined;
     }
-    | (
-      Nullable extends true
+  | (Nullable extends true
       ? {
-        required?: false; // default false
-        default?: T | null; // default null
-      }
+          required?: false | undefined; // default false
+          defaultValue?: T | null | undefined; // default null
+        }
       : {
-        required?: false;
-        default: T
-      }
-    )
-  );
+          required?: false | undefined;
+          defaultValue: T;
+        })
+);
 
-type ArgumentValue<T> =
-  T extends ArgumentConfig<infer U, infer N>
-  ? T extends { required: true }
-  ? U  // Required
-  : N extends true
-  ? U | null  // Optional + nullable
-  : U  // Optional + not nullable
+// extract runtime argument type from type property on argument
+type ArgumentValue<V> = V extends { type: infer T_Lit }
+  ? (T_Lit extends keyof TypeMap ? TypeMap[T_Lit] : never) extends infer Resolved
+    ? V extends { nullable: false }
+      ? Resolved
+      : Resolved | null
+    : never
   : never;
 
 // Transform a record of arguments into a dictionary
@@ -51,14 +50,12 @@ export type ArgumentsDictionary<T extends Arguments> = {
   [K in keyof T]: ArgumentValue<T[K]>;
 };
 
-export type Arguments = Record<string, ArgumentConfig<ArgumentType, boolean>>;
-
-/*// Fill in defaults for the argument definition
-type ArgumentDefaults<T extends ArgumentType, Nullable = true> = {
+// Fill in defaults for the argument definition
+/*type ArgumentDefaults<T extends ArgumentType, Nullable> = {
   positional: false;  // Default: false
   nullable: Nullable; // Default: true
 }
-  & Pick<Argument<T, Nullable>, 'description' | 'type'>
+  & Pick<ArgumentConfig<T, Nullable>, 'description' | 'type'>
   & (
     | {
       required: true;
@@ -78,8 +75,8 @@ type ArgumentDefaults<T extends ArgumentType, Nullable = true> = {
 // Transform a record of arguments
 type FilledArguments<T extends Arguments> = {
   [K in keyof T]: ArgumentDefaults<
-    T[K] extends Argument<infer U> ? U : never,
-    T[K] extends Argument<ArgumentType, infer N> ? N : true
+    T[K] extends ArgumentConfig<infer U, boolean> ? U : never,
+    T[K] extends ArgumentConfig<ArgumentType, infer N> ? N : true
   >;
 };*/
 
@@ -87,10 +84,13 @@ export type Module<T extends Arguments | undefined> = {
   fullName: string;
   description: string;
   examples: string | string[];
-} & ({
-  arguments: Exclude<T, undefined>;
-  run: (args: ArgumentsDictionary<Exclude<T, undefined>>) => number;
-} | {
-  arguments: undefined;
-  run: () => number;
-});
+} & (
+  | {
+      arguments: Exclude<T, undefined>;
+      run: (args: ArgumentsDictionary<Exclude<T, undefined>>) => number;
+    }
+  | {
+      arguments: undefined;
+      run: () => number;
+    }
+);

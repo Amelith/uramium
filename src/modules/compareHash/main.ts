@@ -4,10 +4,8 @@ export default defineModule({
   fullName: 'Compare File Hashes',
   description: 'Compares',
   examples: '',
-  arguments: {
-
-  },
+  arguments: {},
   run: (_args) => {
     return 0;
-  }
+  },
 });

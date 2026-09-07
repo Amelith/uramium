@@ -1,25 +1,32 @@
-import help from './modules/help.ts';
+import { styleText } from 'node:util';
 import { parseArgs } from '@utils/parseArgs.ts';
-import type { Arguments, Module } from './types.ts';
+import help from './modules/help.ts';
 import { type ModuleKey, getModuleByName, listModules, listModulesWithDescription } from './modules/modules.ts';
+import type { Arguments, Module } from './types.ts';
 
 function main(): void {
   const option = process.argv[2] ?? 'help';
 
   if (option === 'list') {
-    console.log('List of available modules:');
-    console.log(listModules().map(m => `- ${m}`).join('\n'));
+    console.log(styleText(['cyan', 'bold'], 'List of available modules:'));
+    console.log(
+      listModules()
+        .map((m) => `- ${styleText('blueBright', m)}`)
+        .join('\n'),
+    );
   } else if (option === 'list-full') {
-    console.log('List of available modules:');
-    const m = listModulesWithDescription().map(m =>
-      `- ${m.key}:\n` +
-      ` - Full name: ${m.fullName}\n` +
-      ` - Description: ${m.description
-        .split('\n')
-        .map(line => line.padStart(4, ' '))
-        .join('\n')
-      }`
-    ).join('\n')
+    console.log(styleText(['cyan', 'bold'], 'List of available modules:'));
+    const m = listModulesWithDescription()
+      .map(
+        (m) =>
+          `- ${styleText('blueBright', `${m.key}:`)}\n`
+          + `  ${styleText('cyan', m.fullName)}\n`
+          + `   ${m.description
+            .split('\n')
+            .map((line) => line.padStart(4, ' '))
+            .join('\n')}`,
+      )
+      .join('\n');
     console.log(m);
   } else {
     // parse args & call selected module

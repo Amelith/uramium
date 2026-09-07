@@ -1,7 +1,7 @@
 import type { ArgumentConfig, ArgumentType, Arguments, ArgumentsDictionary, NormalizedArgs } from '../types.ts';
 
 export function normalizeArgs(args: string[]): NormalizedArgs {
-  const named: { key: string, value: string }[] = [];
+  const named: { key: string; value: string }[] = [];
   const positionals: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
@@ -10,9 +10,9 @@ export function normalizeArgs(args: string[]): NormalizedArgs {
       const [key, value] = a.split('=');
 
       if (!key) {
-        throw new Error(`Key not found for provided value ${value}`)
+        throw new Error(`Key not found for provided value ${value}`);
       } else if (!value) {
-        throw new Error(`Value not found for provided value ${key}`)
+        throw new Error(`Value not found for provided value ${key}`);
       } else {
         named.push({
           // remove leading - or --
@@ -55,7 +55,7 @@ export function parseArgs<T extends Arguments>(args: NormalizedArgs | string[], 
   let currentPositionalIndex = 0;
 
   for (const [key, config] of Object.entries(options)) {
-    const entry = named.find(e => e.key === key || e.key === config.shortForm)
+    const entry = named.find((e) => e.key === key || e.key === config.shortForm);
     if (entry) {
       results[key] = parseType(key, entry.value, config);
       continue;
@@ -70,14 +70,16 @@ export function parseArgs<T extends Arguments>(args: NormalizedArgs | string[], 
       }
 
       if (config.required ?? false) {
-        throw new Error(`Argument ${key} of type ${config.type} required but not found (positional: ${config.positional ?? false})`);
+        throw new Error(
+          `Argument ${key} of type ${config.type} required but not found (positional: ${config.positional ?? false})`,
+        );
       } else {
-        if (config.default !== undefined) {
-          results[key] = config.default; // default is already provided as the type required
-        } else if (config.nullable) {
+        if (config.defaultValue !== undefined) {
+          results[key] = config.defaultValue; // default is already provided as the type required
+        } else if (config.nullable ?? true) {
           results[key] = null;
         } else {
-          throw new Error(`Invalid arguments config for ${key}: required false, default not provided, nullable false`)
+          throw new Error(`Invalid arguments config for ${key}: required false, default not provided, nullable false`);
         }
       }
     }
@@ -86,17 +88,22 @@ export function parseArgs<T extends Arguments>(args: NormalizedArgs | string[], 
   return results as ArgumentsDictionary<T>;
 }
 
-/*function parseType(value: string, config: ArgumentConfig<string, true>): string | null;
-function parseType(value: string, config: ArgumentConfig<string, false>): string;
-function parseType(value: string, config: ArgumentConfig<number, true>): number | null;
-function parseType(value: string, config: ArgumentConfig<number, false>): number;
-function parseType(value: string, config: ArgumentConfig<boolean, true>): boolean | null;
-function parseType(value: string, config: ArgumentConfig<boolean, false>): boolean;*/
-function parseType<T extends ArgumentType>(key: string, value: string, config: ArgumentConfig<T, boolean>): T | null {
+/*function parseType(key: string, value: string, config: ArgumentConfig<string, true>): string | null;
+function parseType(key: string, value: string, config: ArgumentConfig<string, false>): string;
+function parseType(key: string, value: string, config: ArgumentConfig<number, true>): number | null;
+function parseType(key: string, value: string, config: ArgumentConfig<number, false>): number;
+function parseType(key: string, value: string, config: ArgumentConfig<boolean, true>): boolean | null;
+function parseType(key: string, value: string, config: ArgumentConfig<boolean, false>): boolean;*/
+function parseType<T extends ArgumentType>(
+  key: string,
+  value: string,
+  config: ArgumentConfig<T, boolean>,
+): T | null {
   if (value === 'null' && (config.nullable ?? true)) return null;
 
   switch (config.type) {
-    case 'string': return value as T;
+    case 'string':
+      return value as T;
     case 'integer': {
       const int = parseInt(value);
       if (isNaN(int)) throw new Error(`Could not parse value for ${key} as integer`);
@@ -112,5 +119,6 @@ function parseType<T extends ArgumentType>(key: string, value: string, config: A
       else if (value === 'false') return false as T;
       else throw new Error(`Could not parse value for ${key} as boolean`);
     }
+    default: return null;
   }
 }

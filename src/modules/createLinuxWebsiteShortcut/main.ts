@@ -4,10 +4,8 @@ export default defineModule({
   fullName: 'Create Linux Website Shortcut',
   description: 'Creates ',
   examples: '',
-  arguments: {
-
-  },
+  arguments: {},
   run: (_args) => {
     return 0;
-  }
+  },
 });
