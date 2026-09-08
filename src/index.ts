@@ -21,9 +21,9 @@ function main(): void {
         (m) =>
           `- ${styleText('blueBright', `${m.key}:`)}\n`
           + `  ${styleText('cyan', m.fullName)}\n`
-          + `   ${m.description
+          + `${m.description
             .split('\n')
-            .map((line) => line.padStart(4, ' '))
+            .map((l) => `   ${l}`)
             .join('\n')}`,
       )
       .join('\n');
