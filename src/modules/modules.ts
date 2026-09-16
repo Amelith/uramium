@@ -1,13 +1,15 @@
 import compareHash from './compareHash/main.ts';
 import createLinuxWebsiteShortcut from './createLinuxWebsiteShortcut/main.ts';
+import findEnvVar from './findEnvVar/main.ts';
 
 export type ModuleKey = keyof typeof modules;
 export type ModuleForKey<K extends ModuleKey> = (typeof modules)[K];
 
 /** List of all available modules. */
 const modules = {
-  createLinuxWebsiteShortcut: createLinuxWebsiteShortcut,
-  compareHash: compareHash,
+  createLinuxWebsiteShortcut,
+  compareHash,
+  findEnvVar,
 } as const;
 
 export function listModules(): ModuleKey[] {

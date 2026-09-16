@@ -3,7 +3,7 @@ import { defineModule, indentAllButFirstLine } from '@utils/util.ts';
 import type { ArgumentConfig, Arguments, ArgumentType } from '../types';
 import { getModuleByName, type ModuleKey } from './modules';
 
-const GENERAL_HELP_TEXT = `^w^`;
+const GENERAL_HELP_TEXT = `general help teehee`;
 
 const helpModule = defineModule({
   fullName: 'Help',
@@ -48,7 +48,7 @@ function formatModuleConfig(
   const desc = indentAllButFirstLine(description);
 
   const exampleArr = Array.isArray(examples) ? examples : [examples];
-  const exampleText = exampleArr.map((e) => `  ${styleText('bgGray', e)}`).join('\n');
+  const exampleText = exampleArr.map((e) => `  ${styleText(['bgBlack'], e)}`).join('\n');
 
   const moduleArgsText =
     moduleArgs === undefined || Object.keys(moduleArgs).length === 0
