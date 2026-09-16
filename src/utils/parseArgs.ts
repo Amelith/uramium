@@ -5,7 +5,8 @@ export function normalizeArgs(args: string[]): NormalizedArgs {
   const positionals: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
+    const a = args[i];
+    if (!a) continue;
     if (a.includes('=')) {
       const [key, value] = a.split('=');
 
@@ -66,16 +67,18 @@ export function parseArgs<T extends Arguments>(args: NormalizedArgs | string[], 
           results[key] = parseType(key, positionalValue, config);
           continue;
         }
-        // positionalValue not found (not enough / none provided), so check if value is required
+        // positionalValue not found (not enough positionals / none provided), so check if value is required
       }
 
       if (config.required ?? false) {
         throw new Error(
-          `Argument ${key} of type ${config.type} required but not found (positional: ${config.positional ?? false})`,
+          `${config.positional ? 'Positional a' : 'A'}rgument \`${key}\` of type \`${config.type}\` `
+            + `required but not found${config.shortForm ? ` (Short form: -${config.shortForm})` : ''}`,
         );
       } else {
         if (config.defaultValue !== undefined) {
-          results[key] = config.defaultValue; // default is already provided as the type required
+          // default is already provided as the type required and doesn't need to be parsed
+          results[key] = config.defaultValue;
         } else if (config.nullable ?? true) {
           results[key] = null;
         } else {
@@ -94,12 +97,9 @@ function parseType(key: string, value: string, config: ArgumentConfig<number, tr
 function parseType(key: string, value: string, config: ArgumentConfig<number, false>): number;
 function parseType(key: string, value: string, config: ArgumentConfig<boolean, true>): boolean | null;
 function parseType(key: string, value: string, config: ArgumentConfig<boolean, false>): boolean;*/
-function parseType<T extends ArgumentType>(
-  key: string,
-  value: string,
-  config: ArgumentConfig<T, boolean>,
-): T | null {
-  if (value === 'null' && (config.nullable ?? true)) return null;
+function parseType<T extends ArgumentType>(key: string, value: string, config: ArgumentConfig<T, boolean>): T | null {
+  // nullable true by default only if value is not required
+  if (value === 'null' && (config.nullable ?? !config.required)) return null;
 
   switch (config.type) {
     case 'string':
@@ -119,6 +119,7 @@ function parseType<T extends ArgumentType>(
       else if (value === 'false') return false as T;
       else throw new Error(`Could not parse value for ${key} as boolean`);
     }
-    default: return null;
+    default:
+      return null;
   }
 }

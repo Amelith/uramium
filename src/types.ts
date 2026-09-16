@@ -17,7 +17,7 @@ export type ArgumentConfig<T extends ArgumentType, Nullable extends boolean> = {
   // save type as string for parsing but also as a generic for typed 'default' property
   type: T extends string ? 'string' : T extends number ? 'integer' | 'float' : T extends boolean ? 'boolean' : never;
   // if nullable and not required, the default property can be set to null
-  nullable?: Nullable | undefined; // default true
+  nullable?: Nullable | undefined; // default depends on required - if required, by default non-nullable
   positional?: boolean | undefined; // default false
   shortForm?: string | undefined;
 } & (
@@ -39,7 +39,7 @@ export type ArgumentConfig<T extends ArgumentType, Nullable extends boolean> = {
 // extract runtime argument type from type property on argument
 type ArgumentValue<V> = V extends { type: infer T_Lit }
   ? (T_Lit extends keyof TypeMap ? TypeMap[T_Lit] : never) extends infer Resolved
-    ? V extends { nullable: false }
+    ? V extends ({ nullable: false } | { required: true, nullable?: false | undefined })
       ? Resolved
       : Resolved | null
     : never
