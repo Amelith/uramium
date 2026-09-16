@@ -4,7 +4,7 @@ import help from './modules/help.ts';
 import { type ModuleKey, getModuleByName, listModules, listModulesWithDescription } from './modules/modules.ts';
 import type { Arguments, Module } from './types.ts';
 
-function main(): void {
+async function main(): Promise<void> {
   const option = process.argv[2] ?? 'help';
 
   if (option === 'list') {
@@ -38,14 +38,15 @@ function main(): void {
 
     // no need to parse args if none are required
     if (module.arguments === undefined) {
-      const exitCode = module.run();
+      const exitCode = await Promise.resolve(module.run());
       process.exit(exitCode);
     }
 
-    const argv = process.argv.slice(3);
     try {
+      const argv = process.argv.slice(3);
       const parsedArgs = parseArgs(argv, module.arguments);
-      module.run(parsedArgs);
+      const exitCode = await Promise.resolve(module.run(parsedArgs));
+      process.exit(exitCode);
     } catch (e) {
       if (e instanceof Error) console.error(e.message);
       else console.error(e);
@@ -53,4 +54,4 @@ function main(): void {
   }
 }
 
-main();
+await main();

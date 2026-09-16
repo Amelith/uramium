@@ -6,6 +6,7 @@ export default defineModule({
   examples: '',
   arguments: {},
   run: (_args) => {
+    fetch()
     return 0;
   },
 });

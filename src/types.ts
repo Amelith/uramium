@@ -87,10 +87,10 @@ export type Module<T extends Arguments | undefined> = {
 } & (
   | {
       arguments: Exclude<T, undefined>;
-      run: (args: ArgumentsDictionary<Exclude<T, undefined>>) => number;
+      run: (args: ArgumentsDictionary<Exclude<T, undefined>>) => Promise<number> | number;
     }
   | {
       arguments: undefined;
-      run: () => number;
+      run: () => Promise<number> | number;
     }
 );

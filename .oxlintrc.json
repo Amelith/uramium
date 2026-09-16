@@ -186,10 +186,12 @@
     ],
     "typescript/prefer-regexp-exec": "error",
     "typescript/prefer-string-starts-ends-with": "error",
-    // require function return types, but allow function expressions without explicit return type
+    // require function return types, but allow immediately returning function expressions
+    // () => ...
     "typescript/explicit-function-return-type": [
       "warn",
       {
+        "allowConciseArrowFunctionExpressionsStartingWithVoid": true,
         "allowExpressions": true
       }
     ],
