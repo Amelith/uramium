@@ -1,0 +1,120 @@
+import { readFileSync } from 'node:fs';
+import * as fs from 'node:fs/promises';
+import { join } from 'node:path';
+import { fetchAndConvertIcon } from '@utils/guessIcon.ts';
+import { capitalize, defineModule } from '@utils/util.ts';
+import { getDomainWithoutSuffix } from 'tldts';
+
+// io.gitlab.librewolf-community
+//
+// ~/.local/share/applications/org.mozilla.firefox.webapp-<uuid>.desktop
+// [Desktop Entry]
+// Type=Application
+// Version=1.5
+// Name=Twitch
+// Icon=/home/amelith/.config/mozilla/firefox/3gne2lme.default-release/taskbartabs/icons/<uuid>.png
+// Exec="/.../firefox" "-taskbar-tab" "<uuid>" "-new-window" "<site>" "-profile" "/home/amelith/.config/mozilla/firefox/3gne2lme.default-release" "-container" "0"
+//
+//
+// first check if site already present in taskbartabs/taskbartabs.json, fallback to manual !
+
+const HOME = process.env['HOME'] ?? `/home/${(await Bun.$`whoami`).text().trim()}`;
+const APPLICATIONS_DIRECTORY = `${process.env['XDG_DATA_HOME'] ?? `${HOME}/.local/share`}/applications`;
+// ? const APPLICATION_ICON_DIRECTORY = `${HOME}/Pictures/icons/desktop`;
+
+const LIBREWOLF_CONFIG_DIR = `${HOME}/.var/app/io.gitlab.librewolf-community/config/librewolf/librewolf`;
+const PROFILES_INI = `${LIBREWOLF_CONFIG_DIR}/profiles.ini`;
+
+const LIBREWOLF_PROFILE = readFileSync(PROFILES_INI, 'utf8')
+  .split('\n')
+  // match "Default=r6k5rcqz.default-default", but not "Default=1"
+  .find((line) => /^Default=\w{8}\..+?-.+$/.exec(line))
+  ?.split('=')[1];
+
+const TASKBAR_TABS_DIR = `${LIBREWOLF_CONFIG_DIR}/${LIBREWOLF_PROFILE}/taskbartabs`;
+const TASKBAR_TABS_ICONS = `${TASKBAR_TABS_DIR}/icons`;
+const TASKBAR_TABS_JSON = `${TASKBAR_TABS_DIR}/taskbartabs.json`;
+
+
+export default defineModule({
+  fullName: 'Create Linux Website Shortcut',
+  description: 'Creates a Librewolf Taskbar Tab shortcut to the specified website',
+  examples: '',
+  arguments: {
+    'website': {
+      description: 'The website to create a shortcut to',
+      type: 'string',
+      positional: true,
+      shortForm: 'w',
+      required: true,
+    },
+    'name': {
+      description: 'The name to use for the shortcut. Capitalized domain name by default.',
+      type: 'string',
+      shortForm: 'n',
+    },
+    'icon': {
+      description:
+        'Icon to use for the shortcut. Can be a URL or file path.'
+        + 'Tries to guess it based on `<link rel=icon>`-type properties by default.',
+      type: 'string',
+      shortForm: 'i',
+    },
+  },
+  run: async (args) => {
+    const { website, name, /* icon */ } = args;
+
+    if (!website.startsWith('https://')) throw new Error('Website input is not an HTTPS URL');
+
+    const options = {
+      websiteURL: website,
+      name: '',
+      iconPath: '',
+    };
+
+    if (name) {
+      // .desktop will be appended to file name so allow max 255 - 8 characters (and . / .. are okay but / or \0 aren't)
+      if (name.length === 0 || name.length > 255 - 8 || /[/\0]/.test(name)) throw new Error('Invalid name');
+      options.name = name;
+    } else {
+      const guess = getDomainWithoutSuffix(options.websiteURL);
+      if (!guess) throw new Error(`Unable to guess hostname from ${options.websiteURL}`);
+      options.name = capitalize(guess);
+    }
+
+    const iconPath = await resolveIcon({ ...options, icon });
+
+    // ask for confirmation of provided/guessed options?
+    return 0;
+  },
+});
+
+function checkIfTabExists(url: string): boolean {
+
+}
+
+/**
+ * @param icon URL or relative/absolute file path pointing to icon
+ * @returns Icon file path
+ */
+async function resolveIcon(options: { websiteURL: string; name: string; icon: string | null }): Promise<string> {
+  const { websiteURL, icon, name } = options;
+  const getIconPath = (ext: string) => join(APPLICATION_ICON_DIRECTORY, name, ext);
+
+  if (icon) {
+    if (icon.startsWith('https://')) {
+      // provided icon is a link
+      const { data, format } = await fetchAndConvertIcon(icon);
+      if (!format) throw new Error('Unable to guess icon format');
+
+      const path = getIconPath(format);
+      await fs.writeFile(path, data);
+      return path;
+    } else {
+      // provided icon is a file
+    }
+  } else {
+  }
+}
+
+function buildShortcut(options: { websiteUrl: string; name: string; icon: string }): void {}

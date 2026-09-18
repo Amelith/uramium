@@ -1,0 +1,172 @@
+import decodeIco from 'decode-ico';
+import probe from 'probe-image-size';
+
+interface Icon {
+  url: string;
+  size: [number, number];
+  format: string | undefined;
+}
+
+interface IconData {
+  data: Uint8Array;
+  format: string | undefined;
+}
+
+const HTTP_OPTIONS = {
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0',
+  },
+};
+
+// support png, svg & xpm (accepted as linux shortcuts), ico (common format),
+// and all types from Bun.Image on linux (excluding gif)
+// exclude image/ prefix from map since that part stays the same across all types
+const MIME_TO_EXTENSION_MAP: Record<string, string> = {
+  'svg+xml': 'svg',
+  'svg-xml': 'svg',
+  'png': 'png',
+  'jpg': 'jpg',
+  'jpeg': 'jpeg',
+  'webp': 'webp',
+  'x-icon': 'ico',
+  'vnd.microsoft.icon': 'ico',
+  'bmp': 'bmp',
+  'x-ms-bmp': 'bmp',
+  'x-bmp': 'bmp',
+};
+const SUPPORTED_FORMATS = new Set(Object.values(MIME_TO_EXTENSION_MAP));
+
+export async function fetchIcon(url: string, format?: string,): Promise<IconData> {
+  const response = await fetch(url, HTTP_OPTIONS);
+  const data = await response.bytes();
+  const mime = response.headers.get('Content-Type');
+
+  // set icon format from content type
+  const type = mime ? /\/(.+)/.exec(mime)?.at(1) : undefined;
+  // prefer actual format based on request headers or file header
+  const finalFormat =
+    (type ? MIME_TO_EXTENSION_MAP[type] : undefined)
+    // fallback to reading from file header
+    ?? probe.sync(Buffer.from(data))?.type
+    // fallback to provided format
+    ?? format;
+
+  return { data, format: finalFormat };
+}
+
+export async function fetchBestIcon(url: string): Promise<IconData | undefined> {
+  const best = await guessBestIcon(url);
+  if (!best) return undefined;
+  return fetchAndConvertIcon(best);
+}
+
+async function guessBestIcon(url: string): Promise<Icon | undefined> {
+  const icons = await getIcons(url);
+  // allow undefined format here
+  const supportedIcons = icons.filter((i) => !i.format || SUPPORTED_FORMATS.has(i.format.toLowerCase()));
+  return getLargestIcon(supportedIcons);
+}
+
+export async function fetchAndConvertIcon(icon: Icon | string): Promise<IconData> {
+  const href = typeof icon === 'string' ? icon : icon.url;
+  const f = typeof icon === 'string' ? undefined : icon.format;
+
+  const r = await fetchIcon(href, f);
+  let iconData = r.data;
+  const format = r.format;
+  // if no format was found (unlikely), try to convert with Bun anyways and handle error there
+
+  if (format === 'ico') {
+    const data = decodeIco(iconData).map(
+      (data) =>
+        ({
+          url: href,
+          size: [data.width, data.height],
+          format: data.type,
+          data: data.data,
+        }) as Icon & { data: Uint8Array },
+    );
+
+    const largest = getLargestIcon(data);
+    if (!largest) throw new Error('.ico file does not contain any images (?)');
+
+    iconData = largest.data;
+  }
+
+  if (format && ['svg', 'png', 'xpm'].includes(format)) return { data: iconData, format };
+
+  // proceed with conversion
+  const img = new Bun.Image(iconData);
+  return { data: await img.png().bytes(), format: 'png' };
+}
+
+async function getIcons(url: string): Promise<Icon[]> {
+  const icons: Icon[] = [];
+
+  const rewriter = new HTMLRewriter().on('link', {
+    element: async (el) => {
+      const rel = el.getAttribute('rel');
+      if (!rel?.toLowerCase().includes('icon')) return;
+
+      const href = el.getAttribute('href');
+      if (!href) return;
+
+      const size = el
+        .getAttribute('sizes')
+        ?.split('x')
+        .map((s) => parseInt(s)) as [number, number] | undefined;
+      if (size) {
+        // try guessing the file format based on the extension first.
+        // if not present, get format and update href by following chain of redirects via probe-image-url
+        const icon: Icon = { url: href, size, format: guessFormat(href) };
+        if (!icon.format) {
+          const { url, type } = await probe(href);
+          icon.url = url;
+          icon.format = type;
+        }
+
+        icons.push(icon);
+      } else {
+        // since we're already calling probe-image-size for width & height,
+        // we can also use the returned format and the url (in case of redirects)
+        const { url, width, height, type: format } = await probe(href);
+        icons.push({ url: url, size: [width, height], format });
+      }
+    },
+  });
+
+  const response = await fetch(url, HTTP_OPTIONS);
+  await rewriter.transform(response).blob();
+  return icons;
+}
+
+export function guessFormat(url: string): string | undefined {
+  // after the extension, there's most likely either the end of the url ($) or url params (?...)
+  // exceptions are urls which don't directly point at the url
+  const extensionMatch = /\.(\w+)($|\?)/.exec(url);
+  return extensionMatch?.at(1)?.toLowerCase();
+}
+
+// only require size and format to simplify finding the largest image when converting an ico
+function getLargestIcon<T extends { size: [number, number]; format: string | undefined }>(icons: T[]): T | undefined {
+  if (!icons.length) return undefined;
+
+  return icons.reduce((max, icon) => {
+    if (!icon) return max;
+    if (!max) return icon;
+    const maxArea = max.size ? max.size[0] * max.size[1] : 0;
+    const iconArea = icon.size ? icon.size[0] * icon.size[1] : 0;
+
+    if (iconArea === maxArea) {
+      // if areas are equal, prefer SVG > PNG > JPG/WebP > ICO > bmp > XPM/undefined/other
+      const formatPriority: Record<string, number> = { svg: 5, png: 4, jpg: 3, webp: 3, ico: 2, bmp: 1, xpm: 0 };
+
+      const maxFormatPriority = max.format ? (formatPriority[max.format] ?? 0) : 0;
+      const iconFormatPriority = icon.format ? (formatPriority[icon.format] ?? 0) : 0;
+
+      return iconFormatPriority > maxFormatPriority ? icon : max;
+    }
+
+    return iconArea > maxArea ? icon : max;
+  });
+}
