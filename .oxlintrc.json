@@ -191,7 +191,6 @@
     "typescript/explicit-function-return-type": [
       "warn",
       {
-        "allowConciseArrowFunctionExpressionsStartingWithVoid": true,
         "allowExpressions": true
       }
     ],
