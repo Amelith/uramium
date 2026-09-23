@@ -1,5 +1,6 @@
 import compareHash from './compareHash/main.ts';
 import findEnvVar from './findEnvVar/main.ts';
+import writeYTDLPArchive from './writeYTDLPArchive/main.ts';
 
 export type ModuleKey = keyof typeof modules;
 export type ModuleForKey<K extends ModuleKey> = (typeof modules)[K];
@@ -8,6 +9,7 @@ export type ModuleForKey<K extends ModuleKey> = (typeof modules)[K];
 const modules = {
   compareHash,
   findEnvVar,
+  writeYTDLPArchive,
 } as const;
 
 export function listModules(): ModuleKey[] {

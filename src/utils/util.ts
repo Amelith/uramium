@@ -15,3 +15,14 @@ export function indentAllButFirstLine(str: string, indentAmount = 2): string {
   const indentedRest = rest.map((line) => ' '.repeat(indentAmount) + line).join('\n');
   return `${first}\n${indentedRest}`;
 }
+
+export function attempt<T>(fn: () => T, defaultValue?: undefined): T | undefined;
+//export function attempt<T>(fn: () => T): T | undefined;
+export function attempt<T>(fn: () => T, defaultValue: T): T;
+export function attempt<T>(fn: () => T, defaultValue?: T): T | undefined {
+  try {
+    return fn();
+  } catch (_) {
+    return defaultValue;
+  }
+}
