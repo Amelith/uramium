@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "module": "index.ts",
+  "license": "GPL-3.0-only",
   "scripts": {
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
