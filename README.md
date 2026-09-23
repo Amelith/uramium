@@ -22,11 +22,14 @@ git clone https://github.com/Amelith/uramium.git
 cd uramium
 ```
 
-I like to set an alias in `~/.bashrc` so I can access the program from anywhere:
+I like to set an alias in `~/.bashrc` so I can access the program from anywhere without having to compile and add to path:
 
 ```bash
 alias "uramium=bun /path/to/project/uramium/src/index.ts"
 ```
+
+If you prefer using a single-file executable instead, I recommend looking at [bun build --compile](https://bun.com/docs/bundler/executables).  
+Note I have not tested if argument parsing works on bundled executables.
 
 ## Usage
 
