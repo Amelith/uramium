@@ -39,7 +39,7 @@ export type ArgumentConfig<T extends ArgumentType, Nullable extends boolean> = {
 // extract runtime argument type from type property on argument
 type ArgumentValue<V> = V extends { type: infer T_Lit }
   ? (T_Lit extends keyof TypeMap ? TypeMap[T_Lit] : never) extends infer Resolved
-    ? V extends ({ nullable: false } | { required: true, nullable?: false | undefined })
+    ? V extends ({ nullable: false } | { required: true, nullable?: false | undefined } | { defaultValue: Resolved })
       ? Resolved
       : Resolved | null
     : never
