@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import { styleText } from 'node:util';
 import { attempt, defineModule } from '@utils/util.ts';
+import { info, log, warn } from '@utils/log.ts';
 
 export default defineModule({
   fullName: 'Write yt-dlp Archive file',
@@ -72,25 +73,25 @@ export default defineModule({
 
         const result = /(.*?)\[(.+)\]\.?\w*/.exec(f);
         if (!result) {
-          console.warn(`Could not parse file name ${f}, skipping`);
+          warn(`Could not parse file name ${f}, skipping`);
           return null;
         }
 
         const title = result[1]?.trim();
         const id = result[2];
         if (!id) {
-          console.warn(`Could not find ID in file name ${f}, skipping`);
+          warn(`Could not find ID in file name ${f}, skipping`);
           return null;
         }
 
         const alreadyInArchive = archivedIDs.has(id);
         if (alreadyInArchive) {
-          console.log(
+          info(
             `· File ${styleText('green', title ?? '')} ${styleText('gray', `(${id})`)} already in archive, skipping`,
           );
           return null;
         } else {
-          console.log(
+          info(
             `+ Adding file ${styleText('greenBright', title ?? '')} ${styleText('gray', `(${id})`)} to archive`,
           );
           return `${site} ${id}`;
@@ -101,9 +102,9 @@ export default defineModule({
     const toAppend = textToAppend.length;
 
     if (toAppend === 0) {
-      console.log(`No entries to append, total ${styleNumber(archivedIDs.size)} items`);
+      log(`No entries to append, total ${styleNumber(archivedIDs.size)} items`);
     } else {
-      console.log(
+      log(
         `Adding ${styleNumber(toAppend)} entr${toAppend === 1 ? 'y' : 'ies'} to archive, `
           + `total ${styleNumber(archivedIDs.size + toAppend)} items`,
       );
