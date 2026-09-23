@@ -23,9 +23,10 @@ cd uramium
 ```
 
 I like to set an alias in `~/.bashrc` so I can access the program from anywhere:
-´´´bash
+
+```bash
 alias "uramium=bun /path/to/project/uramium/src/index.ts"
-´´´
+```
 
 ## Usage
 
