@@ -1,7 +1,8 @@
 import * as fs from 'node:fs';
 import { styleText } from 'node:util';
-import { attempt, defineModule } from '@utils/util.ts';
 import { info, log, warn } from '@utils/log.ts';
+import { attempt, defineModule } from '@utils/util.ts';
+import path from 'node:path';
 
 export default defineModule({
   fullName: 'Write yt-dlp Archive file',
@@ -31,7 +32,8 @@ export default defineModule({
     const { directory, archiveFileName } = args;
     let site = args.site;
 
-    const archiveFileContent = attempt(() => fs.readFileSync(archiveFileName, 'utf-8'), '');
+    const archiveFile = path.join(directory, archiveFileName);
+    const archiveFileContent = attempt(() => fs.readFileSync(archiveFile, 'utf-8'), '');
 
     // store the sites found along with the amount they are found in to infer site if needed
     const sites = new Set<string>();
@@ -59,8 +61,7 @@ export default defineModule({
         site = [...sites][0] ?? 'youtube';
       } else {
         throw new Error(
-          'Multiple sites found in archive file. Please manually specify a site:'
-            + `${process.argv.join(' ')} --site SITE`,
+          `Multiple sites (${[...sites].join(', ')}) found in archive file. Please manually specify a site.`,
         );
       }
     }
@@ -71,7 +72,7 @@ export default defineModule({
       .map((f) => {
         if (f === archiveFileName) return null;
 
-        const result = /(.*?)\[(.+)\]\.?\w*/.exec(f);
+        const result = /(.*?)\[([^\]]+)\]\.\w+/.exec(f);
         if (!result) {
           warn(`Could not parse file name ${f}, skipping`);
           return null;
@@ -91,9 +92,7 @@ export default defineModule({
           );
           return null;
         } else {
-          info(
-            `+ Adding file ${styleText('greenBright', title ?? '')} ${styleText('gray', `(${id})`)} to archive`,
-          );
+          info(`+ Adding file ${styleText('greenBright', title ?? '')} ${styleText('gray', `(${id})`)} to archive`);
           return `${site} ${id}`;
         }
       })
@@ -110,7 +109,7 @@ export default defineModule({
       );
 
       const appendNewlineBefore = !!archiveFileContent && !archiveFileContent.endsWith('\n');
-      fs.appendFileSync(archiveFileName, `${appendNewlineBefore ? '\n' : ''}${textToAppend.join('\n')}\n`);
+      fs.appendFileSync(archiveFile, `${appendNewlineBefore ? '\n' : ''}${textToAppend.join('\n')}\n`);
     }
 
     return 0;
