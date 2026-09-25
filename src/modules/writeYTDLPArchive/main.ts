@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
+import path from 'node:path';
 import { styleText } from 'node:util';
 import { info, log, warn } from '@utils/log.ts';
 import { attempt, defineModule } from '@utils/util.ts';
-import path from 'node:path';
 
 export default defineModule({
   fullName: 'Write yt-dlp Archive file',

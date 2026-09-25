@@ -17,7 +17,6 @@ export function indentAllButFirstLine(str: string, indentAmount = 2): string {
 }
 
 export function attempt<T>(fn: () => T, defaultValue?: undefined): T | undefined;
-//export function attempt<T>(fn: () => T): T | undefined;
 export function attempt<T>(fn: () => T, defaultValue: T): T;
 export function attempt<T>(fn: () => T, defaultValue?: T): T | undefined {
   try {

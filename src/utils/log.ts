@@ -8,9 +8,9 @@ const LOG_LEVELS = {
   INFO: 4,
   DEBUG: 5,
   TRACE: 6,
-}
+};
 
-const LOG_LEVEL_NUM = (LOG_LEVEL in LOG_LEVELS) ? LOG_LEVELS[LOG_LEVEL as keyof typeof LOG_LEVELS] : LOG_LEVELS.INFO;
+const LOG_LEVEL_NUM = LOG_LEVEL in LOG_LEVELS ? LOG_LEVELS[LOG_LEVEL as keyof typeof LOG_LEVELS] : LOG_LEVELS.INFO;
 
 export function trace(msg: unknown): void {
   if (LOG_LEVEL_NUM < LOG_LEVELS.TRACE) return;
